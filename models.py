@@ -12,15 +12,13 @@ class Frame(object):
 		self.name = name
 
 class Model(object):
-	def __init__(self, wheel, frame, name):
-		self.wheel1 = wheel
-		self.wheel2 = wheel
+	def __init__(self, wheel, frame, name, manufacturer):
+		self.wheel = wheel
 		self.frame = frame
 		self.name = name
-		self.weight = self.wheel1.weight + self.wheel2.weight + self.frame.weight
-	def cost(self, shop):
-		base_cost = self.wheel1.cost + self.wheel2.cost + self.frame.cost
-		return base_cost * (1 + shop.markup) # add (1 + manufacturer.markup) * !!!
+		self.manufacturer = manufacturer
+		self.weight = self.frame.weight + (self.wheel.weight * 2)
+		self.production_cost = self.frame.cost + (self.wheel.cost * 2)
 
 class Manufacturer(object):
 	def __init__(self, name, markup, models):
@@ -38,9 +36,14 @@ class Shop(object):
 	def buy_bikes(self, *models):
 		for model in models:
 			self.inventory.append(model)
+			model.wholesale_cost = model.production_cost * ( 1 + model.manufacturer.markup)
+			model.retail_cost = model.wholesale_cost * (1 + self.markup)
+			self.profit -= model.wholesale_cost
 
-	def sell_bike(self, model, Customer):
-		pass
+	def sell_bike(self, model, customer):
+		self.inventory.remove(model)
+		customer.owned_bikes.append(model)
+		self.profit += model.retail_cost
 
 class Customer(object):
 	def __init__(self, name, fund):
